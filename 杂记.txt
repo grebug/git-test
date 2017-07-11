@@ -1,0 +1,236 @@
+主机名	l-kola[1-8].f.dev.cn0
+主机名	l-flight[1-8].wap.dev.cn0
+KEY PASSPHRASE	>ku7:6zi?q=,?>0
+
+l-kola2.f.dev.cn0
+
+jdk 1.7  java开发/运行环境
+maven  java 依赖管理 编译等
+idea  java ide
+git  代码仓库
+SecureCRT   window系统登陆开发机
+
+qtalk  公司内部通讯
+邮箱   公司内部通讯
+开发机权限  http://ops.corp.qunar.com/ops/account/  l-flight[1-8].wap.dev.cn0 l-kola[1-8].f.dev.cn0  sudo权限
+gitlab   http://gitlab.corp.qunar.com/
+
+
+
+git clone http://gitlab.corp.qunar.com/flightuser/incarnation.git
+git branch -r
+git checkout 20170622_init
+git status
+git checkout origin/master
+
+
+
+
+git clone [url]
+会默认创建一个远程仓库origin
+git add
+git status
+git diff
+git commit
+git branch
+git branch -D   删除本地分支
+git log
+
+git checkout -b 123 origin/master
+新建的123与origin/master默认就有关联(--setupstream)!
+
+git push  origin  :123
+可以用于删除远程仓库origin的分支123
+
+git push origin 123 --set-upstream
+设置本地与远程仓库中分支的关联
+
+git fetch origin
+git reset --hard origin/master
+丢弃本地所有改动与提交
+
+git branch -vv（两个v），就能够看到本地分支跟踪的远程分支。
+
+git branch --set-upstream master origin/next
+
+
+mvn compile	编译源码
+mvn test	执行test
+mvn test-compile	编译测试代码，test可执行
+mvn package	项目打包
+mvn install	把project安装到本地的repository中，可作为本地其他项目的依赖
+mvn site	为你的project创建一个站点
+mvn clean	清除target目录下的所有文件
+mvn eclipse:eclipse	为project生成eclipse的工程文件和classpath文件
+mvn idea:idea	生成idea项目
+
+mvn archetype:generate	创建mvn项目 
+mvn archetype:create -DgroupId=com.oreilly -DartifactId=my-app	创建mvn项目
+mvn jetty:run            运行项目于jetty上 
+mvn -Dwtpversion=1.0 eclipse:eclipse        生成Wtp插件的Web项目 
+mvn -Dwtpversion=1.0 eclipse:clean          清除Eclipse项目的配置信息(Web项目) 
+
+组合使用goal命令，如只打包不测试：mvn -Dtest package
+只打jar包：mvn jar:jar
+只测试而不编译，也不测试编译：mvn test -skipping compile -skipping test-compile
+清除eclipse的一些系统设置：mvn eclipse:clean
+
+maven内置三种生命周期：default, clean 和 site。
+
+default生命周期：
+validate：validate the project is correct and all necessary information is available.
+initialize：initialize build state, e.g. set properties or create directories.
+generate-sources：generate any source code for inclusion in compilation.
+process-sources：process the source code, for example to filter any values.
+generate-resources：generate resources for inclusion in the package.
+process-resources：copy and process the resources into the destination directory, ready for packaging.
+compile：compile the source code of the project.
+process-classes：post-process the generated files from compilation, for example to do bytecode enhancement on Java classes.
+generate-test-sources：generate any test source code for inclusion in compilation.
+process-test-sources：process the test source code, for example to filter any values.
+generate-test-resources：create resources for testing.
+process-test-resources：copy and process the resources into the test destination directory.
+test-compile：compile the test source code into the test destination directory
+process-test-classes：post-process the generated files from test compilation, for example to do bytecode enhancement on Java classes. For Maven 2.0.5 and above.
+test：run tests using a suitable unit testing framework. These tests should not require the code be packaged or deployed.
+prepare-package：perform any operations necessary to prepare a package before the actual packaging. This often results in an unpacked, processed version of the package. (Maven 2.1 and above)
+package：take the compiled code and package it in its distributable format, such as a JAR.
+pre-integration-test：perform actions required before integration tests are executed. This may involve things such as setting up the required environment.
+integration-test：process and deploy the package if necessary into an environment where integration tests can be run.
+post-integration-test：perform actions required after integration tests have been executed. This may including cleaning up the environment.
+verify：run any checks to verify the package is valid and meets quality criteria.
+install：install the package into the local repository, for use as a dependency in other projects locally.
+deploy：done in an integration or release environment, copies the final package to the remote repository for sharing with other developers and projects.
+
+
+
+
+
+Tomcat服务器的启动是基于一个server.xml文件的，Tomcat启动的时候首先会启动一个Server，Server里面就会启动Service，Service里面就会启动多个"Connector(连接器)"，每一个连接器都在等待客户机的连接，当有用户使用浏览器去访问服务器上面的web资源时，首先是连接到Connector(连接器)，Connector(连接器)是不处理用户的请求的，而是将用户的请求交给一个Engine(引擎)去处理，Engine(引擎)接收到请求后就会解析用户想要访问的Host，然后将请求交给相应的Host，Host收到请求后就会解析出用户想要访问这个Host下面的哪一个Web应用,一个web应用对应一个Context。
+
+
+
+Spring
+控制反转，我们可以把它看作是一个概念。而依赖注入(Dependency Injection)是控制反转的一种实现方法。James Shore给出了依赖注入的定义：依赖注入就是将实例变量传入到一个对象中去(Dependency injection means giving an object its instance variables)。
+setter注入(setter injection)和构造器注入(constructor injection)。
+
+
+泛型注入？
+
+
+Spring IoC容器：
+BeanFactory（资源缺乏的移动设备时）和ApplicationContext（较高级目前常用）
+两个接口各自的实现类：
+BeanFactory：XmlBeanFactory
+ApplicationContext：FileSystemXmlApplicationContext，ClassPathXmlApplicationContext，WebXmlApplicationContext
+
+xml配置文件基础内容：
+<bean id="helloWorld" class="com.spring.HelloWorld">
+        <property name="message" value="Hello World!"/>
+</bean>
+
+Bean的作用域：（scope=）
+singleton，prototype，request，session，global-session
+
+一般说来，满状态的 bean 使用 prototype 作用域和没有状态的 bean 使用 singleton 作用域。
+
+Bean后置处理器：BeanPostProcessor
+实现该接口，包含两个方法，分别于实例化前后被回调。
+
+依赖注入的一个实例：
+从 TextEditor 中删除了全面控制，并且把它保存到其他地方（即 XML 配置文件），且依赖关系（即 SpellChecker 类）通过类构造函数被注入到 TextEditor 类中。因此，控制流通过依赖注入（DI）已经“反转”，因为你已经有效地委托依赖关系到一些外部系统。
+
+
+
+
+@RequestMapping(value = "/student", method = RequestMethod.GET)
+   public ModelAndView student() {
+      return new ModelAndView("student", "command", new Student());
+   }
+第一个 service 方法 student()，我们已经在名称为 “command” 的 ModelAndView 对象中传递一个空的 Student 对象，因为 spring 框架需要一个名称的 “command” 的对象，如果你在 JSP 文件中使用 <form:form> 标签。所以，当 student() 方法被调用时，它返回 student.jsp 视图。
+
+
+
+			Spring注解
+@Autowired，其作用是为了消除代码Java代码里面的getter/setter与bean属性中的property。默认按类型匹配的方式，在容器查找匹配的Bean，当有且仅有一个匹配的Bean时，Spring将其注入@Autowired标注的变量中。
+@Autowired @Qualifier("personDaoBean") 存在多个实例配合使用（指定注入Bean的名称）
+
+@Resource的装配顺序：
+(1)、@Resource后面没有任何内容，默认通过name属性去匹配bean，找不到再按type去匹配
+(2)、指定了name或者type则根据指定的类型去匹配bean
+(3)、指定了name和type则根据指定的name和type去匹配bean，任何一个不匹配都将报错
+
+然后，区分一下@Autowired和@Resource两个注解的区别：
+(1)、@Autowired默认按照byType方式进行bean匹配，@Resource默认按照byName方式进行bean匹配
+(2)、@Autowired是Spring的注解，@Resource是J2EE的注解，Spring属于第三方的，J2EE是Java自己的东西，因此，建议使用@Resource注解，以减少代码和Spring之间的耦合。
+
+@Service注解对应的是业务层Bean，其实做了两件事情：
+(1)、声明Zoo.java是一个bean，这点很重要，因为Zoo.java是一个bean，其他的类才可以使用@Autowired将Zoo作为一个成员变量自动注入。
+(2)、Zoo.java在bean中的id是"zoo"，即类名且首字母小写。
+
+@Component是所有受Spring 管理组件的通用形式，@Component注解可以放在类的头上，@Component不推荐使用。
+
+@Controller对应表现层的Bean，也就是Action。如果@Controller不指定其value【@Controller】，则默认的bean名字为这个类的类名首字母小写，如果指定value【@Controller(value="UserAction")】或者【@Controller("UserAction")】，则使用value作为bean的名字。
+
+可以利用容器的scope="prototype"来保证每一个请求有一个单独的Action来处理，避免struts中Action的线程安全问题。spring 默认scope 是单例模式(scope="singleton")，这样只会创建一个Action对象，每次访问都是同一Action对象，数据不安全，struts2 是要求每次次访问都对应不同的Action，scope="prototype" 可以保证当有请求的时候都创建一个Action对象。
+
+@Repository对应数据访问层Bean。
+
+@Configuration把一个类作为一个IoC容器，它的某个方法头上如果注册了@Bean，就会作为这个Spring容器中的Bean。
+
+
+
+        SpringMVC注解
+@RequestMapping(value="/content",method="RequestMethod.GET",params="action=del",headers="Accept=application/json",consumes="application/json",)
+属性params要求请求的URL中参数必须包含指定内容
+属性headers要求请求头中必须包含指定参数
+属性consumes指定处理请求的提交内容类型(Content-Type)
+
+
+
+
+
+
+
+
+              Elasticsearch在curl中的用法：
+查看全部索引：
+curl -XGET http://10.86.41.155:9200/_cat/indices?v
+
+curl -XGET http://10.86.41.155:9200/_count?pretty
+
+curl -X<VERB> '<PROTOCOL>://<HOST>:<PORT>/<PATH>?<QUERY_STRING>' -d '<BODY>'
+
+在 Elasticsearch 中文档是 不可改变 的，不能修改它们。 相反，如果想要更新现有的文档，需要 重建索引 或者进行替换.
+
+脚本可以在 update API中用来改变 _source 的字段内容， 它在更新脚本中称为 ctx._source
+POST /website/blog/1/_update
+{
+   "script" : "ctx._source.views+=1"
+}
+
+{ action: { metadata }}\n
+{ request body        }\n
+{ action: { metadata }}\n
+{ request body        }\n
+...(bulk批量操作API)
+每行一定要以换行符(\n)结尾， 包括最后一行.
+action:create,index,update,delete.
+
+curl -i -XPOST 'http://10.86.41.155:9200/website/blog/1/_update?pretty' -d '
+{
+   "script" : "ctx._source.tags+=new_tag",
+   "param" : {
+      "new_tag" : "search"
+   }
+}'
+提示new_tag未定义？？？
+
+
+
+
+curl -i -XGET 'http://10.86.41.155:9200/_analyze?pretty' -d '
+{
+  "analyzer": "standard",
+  "text": "Text to analyze"
+}'
