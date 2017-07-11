@@ -110,7 +110,7 @@ Tomcat服务器的启动是基于一个server.xml文件的，Tomcat启动的时�
 
 
 
-Spring
+			Spring
 控制反转，我们可以把它看作是一个概念。而依赖注入(Dependency Injection)是控制反转的一种实现方法。James Shore给出了依赖注入的定义：依赖注入就是将实例变量传入到一个对象中去(Dependency injection means giving an object its instance variables)。
 setter注入(setter injection)和构造器注入(constructor injection)。
 
@@ -153,7 +153,8 @@ Bean后置处理器：BeanPostProcessor
 
 			Spring注解
 @Autowired，其作用是为了消除代码Java代码里面的getter/setter与bean属性中的property。默认按类型匹配的方式，在容器查找匹配的Bean，当有且仅有一个匹配的Bean时，Spring将其注入@Autowired标注的变量中。
-@Autowired @Qualifier("personDaoBean") 存在多个实例配合使用（指定注入Bean的名称）
+@Autowired
+@Qualifier("personDaoBean") 存在多个实例配合使用（指定注入Bean的名称）
 
 @Resource的装配顺序：
 (1)、@Resource后面没有任何内容，默认通过name属性去匹配bean，找不到再按type去匹配
@@ -170,30 +171,118 @@ Bean后置处理器：BeanPostProcessor
 
 @Component是所有受Spring 管理组件的通用形式，@Component注解可以放在类的头上，@Component不推荐使用。
 
-@Controller对应表现层的Bean，也就是Action。如果@Controller不指定其value【@Controller】，则默认的bean名字为这个类的类名首字母小写，如果指定value【@Controller(value="UserAction")】或者【@Controller("UserAction")】，则使用value作为bean的名字。
+@Controller对应控制层(表现层)的Bean，也就是Action。如果@Controller不指定其value【@Controller】，则默认的bean名字为这个类的类名首字母小写，如果指定value【@Controller(value="UserAction")】或者【@Controller("UserAction")】，则使用value作为bean的名字。
 
 可以利用容器的scope="prototype"来保证每一个请求有一个单独的Action来处理，避免struts中Action的线程安全问题。spring 默认scope 是单例模式(scope="singleton")，这样只会创建一个Action对象，每次访问都是同一Action对象，数据不安全，struts2 是要求每次次访问都对应不同的Action，scope="prototype" 可以保证当有请求的时候都创建一个Action对象。
 
-@Repository对应数据访问层Bean。
+@Repository对应数据访问层Bean，即DAO。
+
+使用注解之前要开启自动扫描功能
+<context:component-scan base-package="cn.test"/> 
 
 @Configuration把一个类作为一个IoC容器，它的某个方法头上如果注册了@Bean，就会作为这个Spring容器中的Bean。
+@Lazy(true) 表示延迟初始化
+@Scope用于指定scope作用域的（用在类上）
+@PostConstruct用于指定初始化方法（用在方法上）
+@PreDestory用于指定销毁方法（用在方法上）
+@DependsOn：定义Bean初始化及销毁时的顺序
+@Primary：自动装配时当出现多个Bean候选者时，被注解为@Primary的Bean将作为首选者，否则将抛出异常
+@Async异步方法调用
+
+
+
+
+
 
 
 
         SpringMVC注解
-@RequestMapping(value="/content",method="RequestMethod.GET",params="action=del",headers="Accept=application/json",consumes="application/json",)
+@RequestMapping(value="/content",method="RequestMethod.GET",params="action=del",headers="Accept=application/json",consumes="application/json",produces="application/json")
 属性params要求请求的URL中参数必须包含指定内容
 属性headers要求请求头中必须包含指定参数
 属性consumes指定处理请求的提交内容类型(Content-Type)
+属性produces指定返回的内容类型(Accept)
+
+@RequestParam用于将请求参数区数据映射到功能处理方法的参数上。
+三个属性：value,required,defaultValue
+public String requestparam4(@RequestParam(value="username",required=false) String username)
+
+@PathVariable用于将请求URL中的模板变量映射到功能处理方法的参数上。
+@RequestMapping(value="/users/{userId}/topics/{topicId}")
+public String test(@PathVariable(value="userId") int userId, @PathVariable(value="topicId") int topicId) 
+
+@ModelAttribute可以应用在方法参数上或方法上。他的作用主要是当注解在方法参数上时会将注解的参数对象添加到Model中；当注解在请求处理方法Action上时会将该方法变成一个非请求处理的方法，用于填充model属性，实际上控制器中的@ModelAttribute方法是在同一控制器中的所有@RequestMapping方法被调用之前调用的。
+两种类型的@ModelAttribute方法。一种是：只加入一个属性，用方法的返回类型隐含表示(属性名称默认为返回类型首字母小写，亦可通过@ModelAttribute的value属性自定义)。另一种是：方法接受一个Model类型的参数，这个model可以加入任意多个model属性。
+@Controller
+@RequestMapping(value="/test")
+public class TestController {
+    @ModelAttribute//1
+    public void populateModel(@RequestParam String abc, Model model) {
+        model.addAttribute("attributeName", abc);
+    }
+    
+    @RequestMapping(value = "/helloWorld")
+    public String helloWorld() {
+       return "test/helloWorld";
+    }
+}
+
+@ModelAttribute//2
+public User getUserInfo(String id){
+    if(id!=null && !id.equals("")){
+        return userService.getUserInfo(id);
+    }
+    return null;
+}
+
+@ModelAttribute和@RequestMapping可同时注释一个方法，这时这个方法的返回值并不是表示一个视图名称，而是model属性的值，视图名称由RequestToViewNameTranslator根据请求"/helloWorld"转换为helloWorld。
+
+
+当@ModelAttribute注解用于方法参数时，它有了双重功能，即“存/取”。首先，它从模型中取出数据并赋予对应的参数，如果模型中尚不存在，则实例化一个，并存放于模型中；其次，一旦模型中已存在此数据对象，接下来一个很重要的步骤便是将请求参数或提交的表单绑定到此对象上（请求参数名映射对象属性名），这是Spring MVC提供的一个非常便利的机制--数据绑定。
+
+
+
+类定义处标注@SessionAttributes：
+可以使用两个属性types和value来指定要session化的ModelMap属性。
+ModelMap中的属性默认的作用域是request级别。
+@SessionAttributes("currUser")
+将ModelMap中属性名为currUser的属性放到Session属性列表中，以便这个属性可以跨请求访问，在controller内部共享 model 属性。
+@SessionAttributes需要清除时，使用SessionStatus.setComplete();来清除。
+
+
+
+@Responsebody表示该方法的返回结果直接写入HTTP response body中。一般在异步获取数据时使用，在使用@RequestMapping后，返回值通常解析为跳转路径，加上@Responsebody后返回结果不会被解析为跳转路径，而是直接写入HTTP response body中。比如异步获取json数据，加上@Responsebody后，会直接返回json数据。
+@RequestBody将HTTP请求正文插入方法中,使用适合的HttpMessageConverter将请求体写入某个对象。
+
+@RequestBody 将HTTP请求正文转换为适合的HttpMessageConverter对象。
+@ResponseBody 将内容或对象作为 HTTP 响应正文返回，并调用适合HttpMessageConverter的Adapter转换对象，写入输出流。
+
+@RequestBody作用： 
+ i) 该注解用于读取Request请求的body部分数据，使用系统默认配置的HttpMessageConverter进行解析，然后把相应的数据绑定到要返回的对象上；
+ ii) 再把HttpMessageConverter返回的对象数据绑定到 controller中方法的参数上。
+使用时机：
+A) GET、POST方式提时， 根据request header Content-Type的值来判断:
+application/x-www-form-urlencoded， 可选（即非必须，因为这种情况的数据@RequestParam, @ModelAttribute也可以处理，当然@RequestBody也能处理）；
+multipart/form-data, 不能处理（即使用@RequestBody不能处理这种格式的数据）；
+其他格式， 必须（其他格式包括application/json, application/xml等。这些格式的数据，必须使用@RequestBody来处理）；
+B) PUT方式提交时， 根据request header Content-Type的值来判断:
+application/x-www-form-urlencoded， 必须；
+multipart/form-data, 不能处理；
+其他格式， 必须；
+说明：request的body部分的数据编码格式由header部分的Content-Type指定；
+
+@ResponseBody
+作用：
+	该注解用于将Controller的方法返回的对象，通过适当的HttpMessageConverter转换为指定格式后，写入到Response对象的body数据区。
+使用时机：
+	返回的数据不是html标签的页面，而是其他某种格式的数据时（如json、xml等）使用；
 
 
 
 
 
 
-
-
-              Elasticsearch在curl中的用法：
+            Elasticsearch在curl中的用法：
 查看全部索引：
 curl -XGET http://10.86.41.155:9200/_cat/indices?v
 
