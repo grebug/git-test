@@ -119,7 +119,7 @@ setter注入(setter injection)和构造器注入(constructor injection)。
 
 
 Spring IoC容器：
-BeanFactory（资源缺乏的移动设备时）和ApplicationContext（较高级目前常用）
+BeanFactory（资源缺乏的移动设备时）和ApplicationContext（较高级目前常用,BeanFactory的派生类）
 两个接口各自的实现类：
 BeanFactory：XmlBeanFactory
 ApplicationContext：FileSystemXmlApplicationContext，ClassPathXmlApplicationContext，WebXmlApplicationContext
@@ -130,16 +130,16 @@ xml配置文件基础内容：
 </bean>
 
 Bean的作用域：（scope=）
-singleton，prototype，request，session，global-session
+singleton，prototype，request，session，globalSession
 
-一般说来，满状态的 bean 使用 prototype 作用域和没有状态的 bean 使用 singleton 作用域。
+一般说来，有状态的 bean 使用 prototype 作用域和没有状态的 bean 使用 singleton 作用域。
 
 Bean后置处理器：BeanPostProcessor
 实现该接口，包含两个方法，分别于实例化前后被回调。
 
+
 依赖注入的一个实例：
 从 TextEditor 中删除了全面控制，并且把它保存到其他地方（即 XML 配置文件），且依赖关系（即 SpellChecker 类）通过类构造函数被注入到 TextEditor 类中。因此，控制流通过依赖注入（DI）已经“反转”，因为你已经有效地委托依赖关系到一些外部系统。
-
 
 
 
@@ -148,6 +148,10 @@ Bean后置处理器：BeanPostProcessor
       return new ModelAndView("student", "command", new Student());
    }
 第一个 service 方法 student()，我们已经在名称为 “command” 的 ModelAndView 对象中传递一个空的 Student 对象，因为 spring 框架需要一个名称的 “command” 的对象，如果你在 JSP 文件中使用 <form:form> 标签。所以，当 student() 方法被调用时，它返回 student.jsp 视图。
+
+
+
+
 
 
 
@@ -318,8 +322,11 @@ curl -i -XPOST 'http://10.86.41.155:9200/website/blog/1/_update?pretty' -d '
 
 
 
-curl -i -XGET 'http://10.86.41.155:9200/_analyze?pretty' -d '
+curl -i -XGET 'http://10.86.41.155:9200/gb?pretty' -d '
 {
-  "analyzer": "standard",
-  "text": "Text to analyze"
+    "query" : {
+        "match_all" : {
+        }
+    },
+    "sort": { "_id": { "order": "desc" }}
 }'
