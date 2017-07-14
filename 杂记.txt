@@ -192,7 +192,7 @@ Bean后置处理器：BeanPostProcessor
 @DependsOn：定义Bean初始化及销毁时的顺序
 @Primary：自动装配时当出现多个Bean候选者时，被注解为@Primary的Bean将作为首选者，否则将抛出异常
 @Async异步方法调用
-
+@Transactional( rollbackFor={Exception.class}) 事务管理
 
 
 
@@ -284,6 +284,104 @@ multipart/form-data, 不能处理；
 
 
 
+		SpringMVC常用配置
+web.xml:
+配置前段控制器DispatcherServlet
+<servlet>  
+    <servlet-name>springMVC</servlet-name>  
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>  
+    <init-param>  
+        <param-name>contextConfigLocation</param-name>  
+        <param-value>classpath:/springMVC.xml</param-value>  
+    </init-param>  
+    <load-on-startup>1</load-on-startup>  
+</servlet>  
+<servlet-mapping>  
+    <servlet-name>springMVC</servlet-name>  
+    <url-pattern>/</url-pattern>  
+</servlet-mapping>
+
+配置监听器，一般在Struts项目中会使用，SpringMVC一般不使用listener监听器来加载spring的配置文件，只使用DispatcherServlet来加载Spring的配置
+<listener>   
+  <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>   
+</listener>
+
+
+SpringMVC.xml：
+	<!-- 自动扫描的包名 -->  
+    <context:component-scan base-package="com.app,com.core,JUnit4" ></context:component-scan>  
+      
+    <!-- 默认的注解映射的支持，会自动注册DefaultAnnotationHandlerMapping与AnnotationMethodHandlerAdapter 两个bean,是spring MVC为@Controllers分发请求所必须的。并提供了：数据绑定支持，@NumberFormatannotation支持，@DateTimeFormat支持，@Valid支持，读写XML的支持（JAXB），读写JSON的支持（Jackson）。 -->
+
+    <mvc:annotation-driven />  
+
+
+    <!-- 视图解释类 -->  
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">  
+        <property name="prefix" value="/WEB-INF/jsp/"/>  
+        <property name="suffix" value=".jsp"/><!--可为空,方便实现自已的依据扩展名来选择视图解释类的逻辑  -->  
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />  
+    </bean>  
+
+    <!-- 拦截器：HandlerInterceptor接口，HandlerInterceptorAdapter适配器，实现这个接口或继承此类，可以非常方便的实现自己的拦截器。preHandle,postHandle,afterCompletion三个方法分别实现预处理、后处理（调用了Service并返回ModelAndView，但未进行页面渲染）、返回处理（已经渲染了页面）。
+    Spring MVC的拦截器，是属于HandlerMapping级别的，可以有多个HandlerMapping ，每个HandlerMapping可以有自己的拦截器。一个请求交给一个HandlerMapping时，这个HandlerMapping先找有没有处理器来处理这个请求，如果找到了，就执行拦截器，执行完拦截后，交给目标处理器。如果没有找到处理器，那么这个拦截器就不会被执行。  -->  
+    <mvc:interceptors>
+        <bean class="com.core.mvc.MyInteceptor"/>
+    </mvc:interceptors>
+
+
+    <!-- 如果你的DispatcherServlet拦截"*.do"这样的有后缀的URL，就不存在访问不到静态资源的问题。如果你的DispatcherServlet拦截"/"，为了实现REST风格，拦截了所有的请求，那么同时对*.js,*.jpg等静态文件的访问也就被拦截了。
+    对静态资源文件的访问：使用默认的Servlet来响应静态文件。把"/**" url,注册到SimpleUrlHandlerMapping的urlMap中,把对静态资源的访问由HandlerMapping转到org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler处理并返回.DefaultServletHttpRequestHandler使用就是各个Servlet容器自己的默认Servlet.  方案一 -->
+    
+    <mvc:default-servlet-handler/>    
+
+
+    <!-- 对静态资源文件的访问：把mapping的URI注册到SimpleUrlHandlerMapping的urlMap中,key为mapping的URI pattern值,而value为ResourceHttpRequestHandler。由ResourceHttpRequestHandler进行处理静态资源的映射访问及返回。  方案二 -->  
+    <mvc:resources mapping="/images/**" location="/images/" cache-period="31556926"/>  
+    <mvc:resources mapping="/js/**" location="/js/" cache-period="31556926"/>  
+    <mvc:resources mapping="/css/**" location="/css/" cache-period="31556926"/> 
+
+    <!-- 要写在DispatcherServlet的前面，让defaultServlet先拦截请求，这样请求就不会进入Spring了。  方案三 -->
+    <servlet-mapping>   
+    	<servlet-name>default</servlet-name>  
+    	<url-pattern>*.jpg</url-pattern>     
+	</servlet-mapping>    
+	<servlet-mapping>       
+    	<servlet-name>default</servlet-name>    
+    	<url-pattern>*.js</url-pattern>    
+	</servlet-mapping>    
+	<servlet-mapping>        
+    	<servlet-name>default</servlet-name>       
+    	<url-pattern>*.css</url-pattern>      
+	</servlet-mapping>
+
+
+	补充说明：多个HandlerMapping的执行顺序问题(优先执行order值较小的)：
+	DefaultAnnotationHandlerMapping的order属性值是：0
+	<mvc:resources/ >自动注册的SimpleUrlHandlerMapping的order属性值是：2147483646
+	<mvc:default-servlet-handler/>自动注册的SimpleUrlHandlerMapping的order属性值是： 2147483647
+
+
+	JUnit单元测试：JUnitActionBase类是所有JUnit的测试类的父类
+
+	转发与重定向：redirect/forward:url	
+
+	spring容器放在ServletContext中的key是org.springframework.web.servlet.FrameworkServlet.CONTEXT.springMVC。注意后面的springMVC，是你的servlet-name配置的值，注意适时修改。
+
+	<!-- 用于持有ApplicationContext,可以使用SpringContextHolder.getBean('xxxx')的静态方法得到spring bean对象 -->
+	<bean class="com.xxxxx.SpringContextHolder" lazy-init="false" />  
+
+
+
+
+
+
+
+
+
+
+
+
 
 
             Elasticsearch在curl中的用法：
@@ -329,4 +427,10 @@ curl -i -XGET 'http://10.86.41.155:9200/gb?pretty' -d '
         }
     },
     "sort": { "_id": { "order": "desc" }}
+}'
+
+curl -XGET http://10.86.41.155:9200/hot/_analyze?pretty -d '
+{
+   "analyzer":"ik_smart",
+   "text":"张其张李"
 }'
