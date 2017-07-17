@@ -331,9 +331,9 @@ SpringMVC.xml：
 
 
     <!-- 如果你的DispatcherServlet拦截"*.do"这样的有后缀的URL，就不存在访问不到静态资源的问题。如果你的DispatcherServlet拦截"/"，为了实现REST风格，拦截了所有的请求，那么同时对*.js,*.jpg等静态文件的访问也就被拦截了。
-    对静态资源文件的访问：使用默认的Servlet来响应静态文件。把"/**" url,注册到SimpleUrlHandlerMapping的urlMap中,把对静态资源的访问由HandlerMapping转到org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler处理并返回.DefaultServletHttpRequestHandler使用就是各个Servlet容器自己的默认Servlet.  方案一 -->
+    对静态资源文件的访问：使用默认的Servlet来响应静态文件。把"/**" url,注册到SimpleUrlHandlerMapping的urlMap中,把对静态资源的访问由HandlerMapping转到org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler处理并返回.DefaultServletHttpRequestHandhandlerler使用就是各个Servlet容器自己的默认Servlet.  方案一 -->
     
-    <mvc:default-servlet-handler/>    
+    <mvc:default-servlet-/>    
 
 
     <!-- 对静态资源文件的访问：把mapping的URI注册到SimpleUrlHandlerMapping的urlMap中,key为mapping的URI pattern值,而value为ResourceHttpRequestHandler。由ResourceHttpRequestHandler进行处理静态资源的映射访问及返回。  方案二 -->  
