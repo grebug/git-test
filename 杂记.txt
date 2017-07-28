@@ -1,3 +1,5 @@
+effective java：p23
+
 主机名	l-kola[1-8].f.dev.cn0
 主机名	l-flight[1-8].wap.dev.cn0
 KEY PASSPHRASE	>ku7:6zi?q=,?>0
