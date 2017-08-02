@@ -1,4 +1,19 @@
-effective java：p23
+effective java：p85
+
+BigInteger和BigDecimal
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 主机名	l-kola[1-8].f.dev.cn0
 主机名	l-flight[1-8].wap.dev.cn0
@@ -288,7 +303,7 @@ multipart/form-data, 不能处理；
 
 		SpringMVC常用配置
 web.xml:
-配置前段控制器DispatcherServlet
+配置前端控制器DispatcherServlet
 <servlet>  
     <servlet-name>springMVC</servlet-name>  
     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>  
@@ -392,6 +407,17 @@ curl -XGET http://10.86.41.155:9200/_cat/indices?v
 
 curl -XGET http://10.86.41.155:9200/_count?pretty
 
+
+查看集群
+
+curl -XGET http://10.86.41.155:9200/_cat/health?v
+查看node
+curl -XGET http://10.86.41.155:9200/_cat/nodes?v
+
+删除索引
+curl -XDELETE http://10.86.41.155:9200/city_suggest
+
+
 curl -X<VERB> '<PROTOCOL>://<HOST>:<PORT>/<PATH>?<QUERY_STRING>' -d '<BODY>'
 
 在 Elasticsearch 中文档是 不可改变 的，不能修改它们。 相反，如果想要更新现有的文档，需要 重建索引 或者进行替换.
@@ -435,4 +461,91 @@ curl -XGET http://10.86.41.155:9200/hot/_analyze?pretty -d '
 {
    "analyzer":"ik_smart",
    "text":"张其张李"
+}'
+
+
+
+curl -XGET http://10.86.41.155:9200/website/blog/_search?pretty -d '
+{
+    "query": {
+        "fuzzy" : {
+            "title" : {
+                "value" :         "external",
+                    "boost" :         1.0,
+                    "fuzziness" :     2,
+                    "prefix_length" : 0,
+                    "max_expansions": 100
+            }
+        }
+    }
+}'
+
+
+curl -XGET http://10.86.41.155:9200/fuzzy_test4/blog/_search?pretty -d '
+{
+  "suggest" : {
+    "my-suggestion" : {
+      "text" : "your name",
+      
+      "term" : {
+      "analyzer":"standard",
+        "field" : "text",
+        "suggest_mode":"missing"
+
+      }
+    }
+  }
+}'
+
+"query" : {
+    "match": {
+      "title": "my first blog"
+    }
+  },
+
+
+
+
+curl -XGET http://10.86.41.155:9200/fuzzy_test4/blog/_search?pretty  -d'
+{	
+"size" : 10,
+    "query" : {
+        "match_all": {}
+    }
+}'
+
+curl -XGET http://10.86.41.155:9200/fuzzy_test1/_search?pretty  -d'
+{
+    "query": {
+        "prefix" : { "title" : "ex" }
+    }
+}'
+
+
+curl -XGET http://10.86.41.155:9200/website/_search?pretty  -d'
+{
+    "query": {
+        "fuzzy" : {
+            "title" : {
+                "value" :         "My second",
+                    "boost" :         1.0,
+                    "fuzziness" :     3,
+                    "prefix_length" : 0,
+                    "max_expansions": 100
+            }
+        }
+    }
+}'
+
+
+curl -XGET http://10.86.41.155:9200/website/_search?pretty  -d'
+{
+    "query": {
+        "exists" : { "field" : "date" }
+    }
+}'
+
+curl -XPOST http://10.86.41.155:9200/fuzzy_test4/blog/6?pretty -d'
+{
+	"text":"name"
 }'
