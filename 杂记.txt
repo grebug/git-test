@@ -2,6 +2,10 @@ effective java：p85
 
 BigInteger和BigDecimal
 
+数组是协变且可以具体化的，泛型是不可变的且可以被擦除的。因此，数组提供了运行时的类型安全，但是没有编译时的类型安全。
+
+泛型方法：public static <T extends Comparable<? super T>> T max(List<? extends T> list)
+
 
 
 
@@ -496,14 +500,6 @@ curl -XGET http://10.86.41.155:9200/fuzzy_test4/blog/_search?pretty -d '
     }
   }
 }'
-
-"query" : {
-    "match": {
-      "title": "my first blog"
-    }
-  },
-
-
 
 
 curl -XGET http://10.86.41.155:9200/fuzzy_test4/blog/_search?pretty  -d'
