@@ -1,3 +1,10 @@
+mysql事务隔离级别？
+
+
+
+
+
+
 effective java：p85
 
 BigInteger和BigDecimal
@@ -23,6 +30,17 @@ BigInteger和BigDecimal
 	volatile修饰相应的变量可解决上面的问题，虽然不执行互斥访问，但它可以保证任何一个线程在读取该域的时候都将看到最近刚刚被写入的值。
 	java.util.concurrent.atomic包中的类AtomicLong支持原子(自增)操作。
 第67条：避免过度同步
+
+
+
+
+
+
+
+
+
+Python:
+	标准库模块：keyword，sys
 
 
 
@@ -77,6 +95,31 @@ BigInteger和BigDecimal
 1、增加推荐区域，由大范围锁定小范围（区域内展开城市，能够尽快的锁定想要选的城市）
 2、增加猜你喜欢、推荐等个性化产品
 ================================================================================
+
+
+
+
+用户最后一次输入有结果的量
+要计算较为准确的命准率（用户点击/用户最后一次输入有结果的量）下面这个命中率有点小，在用户输入过程中有结果的量很多，但不一定无效，可能用户在输入~
+
+再增加一个数据。
+2、用户点击结果分布
+点击有机场城市节点的量？点击机场节点的量？点击无机场城市节点的量？点击景点节点的量？点击省/州节点的量？点击国家节点的量？
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -563,6 +606,16 @@ curl -XGET http://10.86.41.155:9200/fuzzy_test4/blog/_search?pretty -d '
   }
 }'
 
+curl -XPUT http://10.86.41.155:9200/fuzzy_test4/blog/4?refresh -d'
+{
+    "text" : {
+        "input": [ "江苏", "jiangsu" ]
+    }
+}'
+普通类型字段不接受数组，还是不行？只有completion索引才能接受？
+
+
+
 
 curl -XGET http://10.86.41.155:9200/fuzzy_test4/blog/_search?pretty  -d'
 {	
@@ -606,4 +659,121 @@ curl -XGET http://10.86.41.155:9200/website/_search?pretty  -d'
 curl -XPOST http://10.86.41.155:9200/fuzzy_test4/blog/6?pretty -d'
 {
 	"text":"name"
+}'
+
+
+
+
+
+
+模糊匹配completion索引建立及查询：
+
+curl -XPUT http://10.86.41.155:9200/mohu?pretty -d'
+{
+    "mappings": {
+        "song" : {
+            "properties" : {
+                "suggest" : {
+                    "type" : "completion"
+                }
+            }
+        }
+    }
+}'
+
+curl -XPUT http://10.86.41.155:9200/mohu/song/1?refresh -d'
+{
+    "suggest" : {
+        "input": [ "江苏", "jiangsu" ]
+    }
+}'
+
+
+curl -XPOST http://10.86.41.155:9200/mohu/_search?pretty -d'
+{
+    "suggest": {
+        "song-suggest" : {
+            "text" : "jiang",
+            "completion" : {
+                "field" : "suggest",
+                "fuzzy" : {
+                    "fuzziness" : "2"
+                }
+            }
+        }
+    }
+}'
+索引内容：江苏，jiangsu
+搜索成功：jiangsuh，江苏ha，江,jiengsu
+搜索失败：江苏盐，江苏南京，江苏南，江河，苏，中国江苏
+正常失败：江苏has
+
+
+curl -XPOST http://10.86.41.155:9200/mohu/_search?pretty -d'
+{
+  "suggest" : {
+    "my-suggestion" : {
+      "text":"jiangsuh",
+      "term":{
+        "field" : "suggest",
+        "max_edits":"2"
+      }
+    }
+  }
+}'
+全都失败，甚至返回结果中text为空，是不是也与建立索引时字段类型为completion有关，感觉这个类型专用于completion suggestion
+
+curl -XPOST http://10.86.41.155:9200/mohu/_search?pretty  -d'
+{
+    "query": {
+        "fuzzy" : {
+            "suggest" : {
+                "value" : "jiangsuh",
+                "fuzziness" : "2"
+            }
+        }
+    }
+}'
+error！suggest字段类型为completion，不支持直接使用fuzzy查询
+
+
+
+
+
+
+match方案解决模糊搜索：
+
+curl -XPOST http://10.86.41.155:9200/fuzzy_test4/_search?pretty -d'
+{
+    "query": {
+        "match" : {
+            "text" : "加利福尼亚"
+        }
+    }
+}'
+
+插入数据
+curl -XPOST http://10.86.41.155:9200/match_test/prod/1?pretty -d'
+{
+    "city_keyword" : "加利福尼亚"
+}'
+curl -XGET http://10.86.41.155:9200/match_test/_search?pretty  -d'
+{	
+"size" : 10,
+    "query" : {
+        "match_all": {}
+    }
+}'
+curl -XPOST http://10.86.41.155:9200/match_test/_search?pretty -d'
+{
+    "query": {
+        "match" : {
+        	"name_en" : {
+                "query" : "califunia",
+                "operator" : "or",
+                "zero_terms_query": "all",
+            	"minimum_should_match": "60%"
+            }
+        }
+	}
 }'
