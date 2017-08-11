@@ -40,7 +40,9 @@ BigInteger和BigDecimal
 
 
 Python:
-	标准库模块：keyword，sys
+	标准库模块：keyword，sys(sys.argv,sys.path)
+	导入：import或from...import...或import...as...
+
 
 
 
@@ -768,7 +770,7 @@ curl -XPOST http://10.86.41.155:9200/match_test/_search?pretty -d'
 {
     "query": {
         "match" : {
-        	"name_en" : {
+        	"_all" : {
                 "query" : "califunia",
                 "operator" : "or",
                 "zero_terms_query": "all",
@@ -777,3 +779,124 @@ curl -XPOST http://10.86.41.155:9200/match_test/_search?pretty -d'
         }
 	}
 }'
+
+
+curl -XGET http://10.86.41.155:9200/_analyze?pretty -d'
+{
+  "analyzer" : "standard",
+  "text" : "加利福呢呀"
+}'
+
+curl -XPOST http://10.86.41.155:9200/match_test/_search?pretty  -d'
+{
+    "query": {
+        "fuzzy" : {
+            "city_keyword" : {
+                "value" : "加利福尼",
+                "fuzziness" : "2"
+            }
+        }
+    }
+}'
+
+
+自定义分析器(将单词或拼音分成单字符)：
+curl -XPUT http://10.86.41.155:9200/my_ana?pretty -d'
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "my_analyzer": {
+          "tokenizer": "my_tokenizer"
+        }
+      },
+      
+    }"tokenizer": {
+        "my_tokenizer": {
+          "type": "standard",
+          "max_token_length": 1
+        }
+      }
+  },
+  "mappings": {
+        "prod" : {
+            "properties" : {
+                "city_keyword" : {
+                    "type" : "text",
+                    "analyzer":"my_analyzer"
+                },
+                "name_en":{
+                	"type":"text",
+                	"analyzer":"my_analyzer"
+                }
+            }
+        }
+    }
+}'
+
+curl -XPOST http://10.86.41.155:9200/my_ana/prod/1?pretty -d'
+{
+    "city_keyword" : "江苏",
+    "name_en":"jiangsu"
+}'
+
+
+curl -XGET http://10.86.41.155:9200/my_ana/_search?pretty  -d'
+{	
+"size" : 10,
+    "query" : {
+        "match_all": {}
+    }
+}'
+
+
+curl -XPOST http://10.86.41.155:9200/my_ana/_search?pretty -d'
+{
+    "query": {
+        "match" : {
+        	"_all" : {
+                "query" : "jaingsu",
+                "operator" : "or",
+                "zero_terms_query": "all",
+            	"minimum_should_match": "60%"
+            }
+        }
+	}
+}'
+
+
+
+
+
+
+
+curl -XPOST http://10.86.41.155:9200/my_ana/_search?pretty -d'
+{
+    "query": {
+        "multi_match" : {
+                "query" : "江苏南京",
+                "type":"best_fields",
+                "fields":["city_keyword","name_en"],
+            	"minimum_should_match": "60%"
+        }
+	}
+}'
+
+
+curl -XPOST http://10.86.41.155:9200/my_ana/_analyze?pretty -d'
+{
+  "analyzer": "my_analyzer",
+  "text": "加利福尼亚"
+}'
+
+
+mutli-match API:
+QueryBuilder qb = multiMatchQuery(
+    "kimchy elasticsearch", 
+    "user", "message"       
+);
+
+
+
+
+curl http://100.81.128.111:8080/suggest/query?queryStr=南京&indexName=""&typeName=""
