@@ -30,6 +30,33 @@ BigInteger和BigDecimal
 	volatile修饰相应的变量可解决上面的问题，虽然不执行互斥访问，但它可以保证任何一个线程在读取该域的时候都将看到最近刚刚被写入的值。
 	java.util.concurrent.atomic包中的类AtomicLong支持原子(自增)操作。
 第67条：避免过度同步
+	不要从同步区域内部调用外来方法。
+	要尽量限制同步区域内部的工作量。
+	分拆锁(locking splitting)，分离锁(lock striping)，非阻塞并发控制(nonblocking)。
+第68条：executor和task优先于线程
+	Java 1.5中新增了java.util.concurrent包，其中包含Executor Framework，很灵活的基于接口的任务执行工具。
+	ExecutorService executor=Executors.newSingleThreadExecutor();
+	executor.execute(runnable);
+	executor.shutdown();
+	
+    concurrent包常用类：
+	ThreadPoolExecutor最大限度控制线程池操作。
+	Executors.newCachedThreadPool轻负载情况下使用。
+	Executors.newFixedThreadPool大负载情况下使用。
+	
+    任务：Runnable和Callable(会返回值)。
+	执行任务的通用机制是executor service。
+	Executor Framework所做的工作是执行，犹如Collections Framework所做的工作是聚集。
+	代替java.util.Timer(只用一个线程执行任务)的ScheduledThreadPoolExecutor(支持多个线程)。
+第69条：并发工具优先于wait和notify
+	java.util.concurrent中更高级的工具分成三类：Executor Framework、并发集合(为标准的集合接口如：List、Queue和Map等提供高性能的并发实现，内部自己管理同步)以及同步器(Synchronizer)。
+	ConcurrentHashMap优于Collections.synchronizedMap或者Hashtable，优于外部同步集合。
+	BlockingQueue通过阻塞操作扩展了Queue接口，可用于工作队列(work queue)，也称生产者-消费者队列(producer-consumer queue)。大多数ExecutorService实现（包括ThreadPoolExecutor）都是用BlockingQueue。
+    
+    同步器是一些使线程能够等待另一个线程的对象，常用的有CountDownLatch和Semaphore，较不常用的有CyclicBarrier和Exchanger。
+    倒计数锁存器：CountDownLatch(int)，一次性障碍，构造器中int参数指允许所有在等待的线程被处理之前，必须调用countDown方法的次数。（await方法等待）
+
+
 
 
 
@@ -40,8 +67,35 @@ BigInteger和BigDecimal
 
 
 Python:
-	标准库模块：keyword，sys(sys.argv,sys.path)
+	标准库模块：keyword(keyword.kwlist)，sys(sys.argv,sys.path)，builtins
 	导入：import或from...import...或import...as...
+	反斜杠\实现多汗语句，(),[],{}中的多行语句不需要反斜杠\。
+	数据类型：整数，长整数，浮点数和复数。
+	字符串：单引号和双引号相同。三引号指定多行字符串。转义符\。去除转义在字符串前加r或R。unicode字符串加前缀u或U。不可变。字面级联不需加号+。*接数字类似于乘法，字符串复制多次。无字符类型，一个字符就是长度为1的字符串。
+	输入输出：input(),print("默认自动换行，添加end后缀取消换行",end="").
+	同一行多条语句使用分号;分割，默认不需用;结尾。
+	缩进控制代码块，称之为代码组。
+	函数首部三引号指定函数的文档字符串，使用help(max)函数或max.__doc__可以打印或获取该信息。
+	变量就是变量，它没有类型，我们所说的"类型"是变量所指的内存中对象的类型。
+	六个标准数据类型：Number，String（'',""），List（[],可变，append(),pop()等方法），Tuple（(),不可变，字符串可看做特殊的元组），Set（{ }或set(接受可迭代参数)，无序不重复，空集合必须使用set()，而不能使用{}，因为{}用于创建空字典），Dictionary（{}或dict(可接受键值对序列参数)方法keys(),values(),clear()，键必须使用不可变类型）。
+	Number：int、float、bool、complex。
+	内置type()函数可查询变量所指对象类型。isinstance(a,int)判断变量所指对象类型。
+	type()为精确类型，而isinstance()支持继承链。
+	bool值True和False相当于常量定义1和0，可和数字相加。
+	del语句可删除对象引用。
+	整数两种除法操作：/得到浮点数，//得到截断的整数。
+	string、list、tuple都属于sequence序列。
+	数据类型转换：int(x,[,base]),float(x),complex(real[,imag]),str(x),repr(x),eval(str),tuple(s),list(s),set(s),dict(d),frozenset(s),chr(x),unichr(x),ord(x),hex(x),oct(x).
+	函数参数以*开头，作为元组接受变长参数。
+	身份运算符：x is y等价于id(x)==id(y).
+
+
+
+
+
+
+
+
 
 
 
@@ -99,10 +153,39 @@ Python:
 ================================================================================
 
 
+二期问题如下：
+1）输入不全、区域+城市/景点等、地名+字母、火车站，这四种原本要解决的情况，除了匹配到我们想要的结果，还匹配出一批关联不大的结果
+2）无机场城市、县、乡村等地名由于没有配置邻近，我们应该给用户推邻近，而现在会匹配出一批关联不大的结果
+3）错字，现在匹配到一批关联不大的结果
+case1：马拉西亚，由于国家优先级低，马来西亚出不来
+case2：爱情海，出不来景点爱琴海
+4）简称，例如阿联酋，由于基础数据没有简称，匹配出一批关联不大的结果
+5）总体情况，所有无结果都会匹配出结果，准确性无法把控
+建议：
+1）参数调整的严一些，至少让包含两个及以上字符去进行匹配，用一个字匹配出的结果不要
+2）qconfig加开关配置，可以调整针对这次优化出来item数目，例如问题1的情况第一条是用户最想要的，别的都不需要
+3）其他要调整的方法还没想好
+
+
+
+调整三点再看看效果：
+1）（参数*用户输入的字符数）<2的按照2算，其他情况正常；
+2）返回结果用编辑距离算法过滤一遍；
+3）qconfig加条数配置，可以控制本次优化返回的条数。
+调整完再自测一下吧~~~
+
+
+
+
+
+
+
+
 
 
 用户最后一次输入有结果的量
 要计算较为准确的命准率（用户点击/用户最后一次输入有结果的量）下面这个命中率有点小，在用户输入过程中有结果的量很多，但不一定无效，可能用户在输入~
+
 
 再增加一个数据。
 2、用户点击结果分布
@@ -110,6 +193,27 @@ Python:
 
 
 
+麻烦重新洗一份城市列表的基础数据，包含以下点击城市列表的埋点，你看下~
+
+Adr城市列表点击埋点：
+1502792189172*onItemClick:LinearLayout*0*ContextImpl:/MainWindow/FrameLayout[0]/LinearLayout[0]/LinearLayout[1]/LinearLayout[0]/LinearLayout[1]/RelativeLayout[3]/AmazingListView[2]/LinearLayout[-]*多伦多:YTO 加拿大*1502792154764*1502792189155
+
+Ios城市列表点击埋点：
+QAVLog:click*2-5*FCityVC:in:/UIWindow[0_0_0_0]/RootVCController[0_0_0_0_#FFFFFFFF]/FCityVC[0_0_0_0_#EFEFF4FF]/FIndexTableView[0_1_0_0]/UITableViewPlainCell[-]*阿拉善左旗*0x7fbb0d305a00*1502850894756
+
+
+selcet的嵌套  from(select name,salary,from patition_table)e selecet e.name,e.salary where e.salary>1000;
+
+Hive只支持在FROM子句中使用子查询，子查询必须有名字，并且列必须唯一：
+select * from (select id,devid,job_time from tb_in_base) a;
+
+
+查看前几条  select * from tablename limit 1;  
+在hive中不支持 select * from tablename limit 1 5;//1 to 5
+
+order by 和 sort by   select * from order_test order by math; 注意:  order by 是做一个全局的排序，所有的数据发送到一个reduce上操作 set hive.mapred.mode=nonstrict //(默认值)  set hive.mapred.mode=strict //在该模式下必须指定limit
+
+case when then 操作 select * case when salary,   case when salary <5000 then 'L1'     when salary >=5000 and salary <10000  then 'L2'    when salary >=10000 and salary <15000 then 'L3'    when salary >=15000 then 'L4'    else 'L0'    end    as salary_level,gender from patition_table;
 
 
 
@@ -118,6 +222,13 @@ Python:
 
 
 
+click_search_content.txt
+还有一个文件是用户点击的结果都有哪些输入可以出这个结果的，我看了下有点问题，输入这个“一一”，是无结果，没有“伊斯坦布尔”，你查下是不是取数据的时候写的有问题~
+
+
+
+BX：每日保险数据相关报表制作
+TTS：代理商票量查询
 
 
 
@@ -874,7 +985,7 @@ curl -XPOST http://10.86.41.155:9200/my_ana/_search?pretty -d'
 {
     "query": {
         "multi_match" : {
-                "query" : "江苏南京",
+                "query" : "ijenhisu",
                 "type":"best_fields",
                 "fields":["city_keyword","name_en"],
             	"minimum_should_match": "60%"
@@ -900,3 +1011,69 @@ QueryBuilder qb = multiMatchQuery(
 
 
 curl http://100.81.128.111:8080/suggest/query?queryStr=南京&indexName=""&typeName=""
+
+
+
+
+
+"shanghai|New york|SH| 上海|SHA|1|中国||上海" => "上海"
+
+SHA,上海虹桥国际机场,虹桥机场,Shanghai Hongqiao International Airport,shanghaihongqiaoguojijichang,hongqiaojichang => 虹桥机场
+PVG，上海浦东国际机场，浦东机场，Shanghai Pudong International Airport，shanghaipudongguojijichang，pudongjichang => 浦东机场
+
+
+
+城市三字码/机场三字码
+城市中文名/机场中文名
+机场中文简称
+城市拼音全称/机场拼音全称            =>           虹桥机场
+城市拼音简写/机场拼音简写
+城市英文名／机场英文名
+place
+
+
+		private String nameEn;
+        private String namePy;
+        private String pyShort;
+        private String nameCn;
+        private String cityCode;
+        private String cnShort;
+        private CityInfoSimple.Place place;
+
+
+multimatch_city_suggest_201708151411
+
+curl -XPOST http://10.86.41.155:9200/multimatch_city_suggest_defaulf/_search?pretty -d'
+{
+    "query": {
+        "multi_match" : {
+                "query" : "tianjing",
+                "type":"best_fields",
+                "fields":["nameEn","namePy","pyShort","nameCn","cityCode","cnShort"],
+            	"minimum_should_match": "40%"
+        }
+	  }
+}'
+
+curl -XPOST http://10.86.41.155:9200/multimatch_city_suggest_201708151411/_analyze?pretty -d'
+{
+  "analyzer": "myAnalyzer3",
+  "text": "加利福尼亚"
+}'
+
+curl -XGET http://10.86.41.155:9200/multimatch_city_suggest_201708151411/_search?pretty  -d'
+{	
+"size" : 5,
+    "query" : {
+        "match_all": {}
+    }
+}'
+
+
+热发文件路径：/home/q/www/incarnation/cache/qconfig/f_incarnation/snapshot2
+
+
+三点改善：
+编辑路径过滤结果
+新功能展示条数热发
+匹配百分比换为具体数字，小于2的情况转换为2
