@@ -5,7 +5,7 @@ mysql事务隔离级别？
 
 
 
-effective java：p85
+
 
 BigInteger和BigDecimal
 
@@ -69,25 +69,32 @@ BigInteger和BigDecimal
 Python:
 	标准库模块：keyword(keyword.kwlist)，sys(sys.argv,sys.path)，builtins
 	导入：import或from...import...或import...as...
-	反斜杠\实现多汗语句，(),[],{}中的多行语句不需要反斜杠\。
-	数据类型：整数，长整数，浮点数和复数。
+	反斜杠\实现多行语句，(),[],{}中的多行语句不需要反斜杠\。
+	
+	数据类型：整数，长整数(python2版本)，浮点数和复数。
+	
 	字符串：单引号和双引号相同。三引号指定多行字符串。转义符\。去除转义在字符串前加r或R。unicode字符串加前缀u或U。不可变。字面级联不需加号+。*接数字类似于乘法，字符串复制多次。无字符类型，一个字符就是长度为1的字符串。
+	
 	输入输出：input(),print("默认自动换行，添加end后缀取消换行",end="").
 	同一行多条语句使用分号;分割，默认不需用;结尾。
 	缩进控制代码块，称之为代码组。
 	函数首部三引号指定函数的文档字符串，使用help(max)函数或max.__doc__可以打印或获取该信息。
 	变量就是变量，它没有类型，我们所说的"类型"是变量所指的内存中对象的类型。
+	
 	六个标准数据类型：Number，String（'',""），List（[],可变，append(),pop()等方法），Tuple（(),不可变，字符串可看做特殊的元组），Set（{ }或set(接受可迭代参数)，无序不重复，空集合必须使用set()，而不能使用{}，因为{}用于创建空字典），Dictionary（{}或dict(可接受键值对序列参数)方法keys(),values(),clear()，键必须使用不可变类型）。
 	Number：int、float、bool、complex。
+	
 	内置type()函数可查询变量所指对象类型。isinstance(a,int)判断变量所指对象类型。
 	type()为精确类型，而isinstance()支持继承链。
 	bool值True和False相当于常量定义1和0，可和数字相加。
 	del语句可删除对象引用。
 	整数两种除法操作：/得到浮点数，//得到截断的整数。
+	
 	string、list、tuple都属于sequence序列。
 	数据类型转换：int(x,[,base]),float(x),complex(real[,imag]),str(x),repr(x),eval(str),tuple(s),list(s),set(s),dict(d),frozenset(s),chr(x),unichr(x),ord(x),hex(x),oct(x).
 	函数参数以*开头，作为元组接受变长参数。
 	身份运算符：x is y等价于id(x)==id(y).
+
 
 
 
@@ -1045,12 +1052,14 @@ multimatch_city_suggest_201708151411
 
 curl -XPOST http://10.86.41.155:9200/multimatch_city_suggest_defaulf/_search?pretty -d'
 {
+	"from":0,
+	"size":10,
     "query": {
         "multi_match" : {
-                "query" : "tianjing",
+                "query" : "shanya",
                 "type":"best_fields",
                 "fields":["nameEn","namePy","pyShort","nameCn","cityCode","cnShort"],
-            	"minimum_should_match": "40%"
+            	"minimum_should_match": "70%"
         }
 	  }
 }'
@@ -1077,3 +1086,44 @@ curl -XGET http://10.86.41.155:9200/multimatch_city_suggest_201708151411/_search
 编辑路径过滤结果
 新功能展示条数热发
 匹配百分比换为具体数字，小于2的情况转换为2
+
+
+
+测试case：（已解决）
+山西达州	→	达州没出来，同时还会出现部分大于指定编辑距离的结果（根据curl的结果顺序，达州还是比较靠前的，比较费解，而且山西运城的话运城是可以出来的）
+广南	→	转换为拼音，匹配的第一个却是annan，单拿出来转换拼音可以发现第一个拼音确实是guangnan，费解
+
+
+
+
+
+
+cat incarnation/startenv.sh
+sudo ../tools/bin/restart_tomcat.sh incarnation/
+
+
+
+
+
+
+
+
+
+dubbo直连：
+<dubbo:reference loadbalance="random" id="citySuggestApi" url="dubbo://10.86.46.111:21000/com.qunar.flight.mobile.lion.inter.itf.city_suggest_api.CitySuggestApi" interface="com.qunar.flight.mobile.lion.inter.itf.city_suggest_api.CitySuggestApi" version="1.0" timeout="1000" check="false" retries="0"/>
+
+
+
+
+自动化测试脚本：
+#!/bin/bash
+
+for line in `cat suggestInput.txt`
+do
+        echo $line
+        #echo \'$line\' |tr -d '\n' |od -An -tx1|tr ' ' %
+        line1=`echo $line |tr -d '\n' |od -An -tx1|tr ' ' %|tr -d '\n'`
+        echo $line1
+        #echo http://l-kola2.f.dev.cn0.qunar.com/fca?qrt=f_r_placeSuggest\&b=\\\{\"queryWord\":\"${line1}\"\\\}\&c=\\\{\"adid\":\"dc5f00fedc31c70b\",\"brush\":\"\\\{\\\"lt\\\":\\\"0\\\"\\\}\",\"cas\":\"com.mqunar.atom.flight_128\",\"catom\":\"com.mqunar.atom.flight_128\",\"cid\":\"beta\",\"gid\":\"7B238A0A-1FA4-5BE4-A9B9-94EF7903EC72\",\"hk\":\"0\",\"ip\":\"100.81.137.89\",\"ke\":\"1499349454260\",\"lat\":\"40.051928\",\"lgt\":\"116.363059\",\"ma\":\"bc:3a:ea:0d:79:1d\",\"mno\":\"\",\"model\":\"OPPOR7\",\"msg\":\"\",\"nt\":\"\",\"osVersion\":\"4.4.4_19\",\"pid\":\"10010\",\"pitcherTid\":\"pf_pitcher_170706.215733.10.86.47.127.7394.5259476_1\",\"port\":\"45320\",\"ref\":\"\",\"sid\":\"E9D806A8-2472-980E-92F3-82EC7F453D19\",\"t\":\"f_r_placeSuggest\",\"tsv\":\"23\",\"uid\":\"867148021257117\",\"un\":\"\",\"usid\":\"\",\"vid\":\"80011150\"\\\}\&ext=\"\">>suggestRequest.txt
+        curl -X POST http://l-kola2.f.dev.cn0.qunar.com/fca?qrt=f_r_placeSuggest\&b=\\\{\"queryWord\":\"${line1}\"\\\}\&c=\\\{\"adid\":\"dc5f00fedc31c70b\",\"brush\":\"\\\{\\\"lt\\\":\\\"0\\\"\\\}\",\"cas\":\"com.mqunar.atom.flight_128\",\"catom\":\"com.mqunar.atom.flight_128\",\"cid\":\"beta\",\"gid\":\"7B238A0A-1FA4-5BE4-A9B9-94EF7903EC72\",\"hk\":\"0\",\"ip\":\"100.81.137.89\",\"ke\":\"1499349454260\",\"lat\":\"40.051928\",\"lgt\":\"116.363059\",\"ma\":\"bc:3a:ea:0d:79:1d\",\"mno\":\"\",\"model\":\"OPPOR7\",\"msg\":\"\",\"nt\":\"\",\"osVersion\":\"4.4.4_19\",\"pid\":\"10010\",\"pitcherTid\":\"pf_pitcher_170706.215733.10.86.47.127.7394.5259476_1\",\"port\":\"45320\",\"ref\":\"\",\"sid\":\"E9D806A8-2472-980E-92F3-82EC7F453D19\",\"t\":\"f_r_placeSuggest\",\"tsv\":\"23\",\"uid\":\"867148021257117\",\"un\":\"\",\"usid\":\"\",\"vid\":\"80011150\"\\\}\&ext=\"\"
+done
